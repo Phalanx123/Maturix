@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Enable nullable reference types and implicit using directives. -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Generate XML documentation so consumers can see method summaries. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- OneOf is used to model success/error results in a single return type. -->
+    <PackageReference Include="OneOf" Version="3.0.0" />
+    <!-- Logging abstractions provide ILogger<T> without bringing in a full logging implementation. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
