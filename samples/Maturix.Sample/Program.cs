@@ -14,7 +14,7 @@ namespace Maturix.Sample
     /// reports and production unit dashboards. Replace the placeholders with
     /// your own API key, location ID and production ID to exercise the API.
     /// </summary>
-    internal class Program
+    internal static class Program
     {
         public static async Task Main(string[] args)
         {
@@ -34,10 +34,8 @@ namespace Maturix.Sample
             // It is best practice to reuse HttpClient throughout the
             // application. Here we instantiate it with the base address from
             // options.
-            using var httpClient = new HttpClient
-            {
-                BaseAddress = new Uri(options.BaseUrl)
-            };
+            using var httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri(options.BaseUrl);
 
             // Use a null logger so the sample doesn't produce logging output.
             var logger = NullLogger<MaturixClient>.Instance;
@@ -63,14 +61,9 @@ namespace Maturix.Sample
                 dashboard =>
                 {
                     var stats = dashboard.Stats;
-                    if (stats != null)
-                    {
-                        Console.WriteLine($"Production {stats.ProductionId}: Current strength {stats.CurrentStrength} at temperature {stats.CurrentTemp}°C");
-                    }
-                    else
-                    {
-                        Console.WriteLine("No stats available.");
-                    }
+                    Console.WriteLine(stats != null
+                        ? $"Production {stats.ProductionId}: Current strength {stats.CurrentStrength} at temperature {stats.CurrentTemp}°C"
+                        : "No stats available.");
                     if (dashboard.SensorData != null)
                     {
                         Console.WriteLine($"Received {dashboard.SensorData.Count} sensor data points.");

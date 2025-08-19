@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Maturix.Models;
 using OneOf;
@@ -89,8 +84,8 @@ namespace Maturix
                     return new ApiError(parsed.Status, parsed.StatusMessage ?? "Unknown error");
                 }
 
-                var reports = (IReadOnlyList<QualityReport>?)parsed.Data?.QualityReports ?? Array.Empty<QualityReport>();
-                return reports;
+                var reports = (IReadOnlyList<QualityReport>?)parsed.Data?.QualityReports ?? [];
+                return OneOf<IReadOnlyList<QualityReport>, ApiError>.FromT0(reports);;
             }
             catch (OperationCanceledException)
             {
