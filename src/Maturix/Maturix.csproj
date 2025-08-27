@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,17 +8,16 @@
     <!-- Generate XML documentation so consumers can see method summaries. -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latestmajor</LangVersion>
+    <UserSecretsId>996d56c1-17a6-4d8a-9f85-57d12f5cbe2d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- OneOf is used to model success/error results in a single return type. -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.8" />
     <PackageReference Include="OneOf" Version="3.0.271" />
     <!-- Logging abstractions provide ILogger<T> without bringing in a full logging implementation. -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="obj\Debug\net10.0\" />
   </ItemGroup>
 
 </Project>

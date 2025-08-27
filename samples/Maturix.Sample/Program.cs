@@ -1,76 +1,58 @@
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Maturix;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+using Maturix.Clients;
+using Maturix.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Maturix.Sample.Configuration;
+using Maturix.Sample.Scenarios;
 
-namespace Maturix.Sample
+namespace Maturix.Sample;
+
+internal static class Program
 {
-    /// <summary>
-    /// Entry point for the sample console application demonstrating use of
-    /// <see cref="MaturixClient"/>.  
-    /// This example shows how to configure the client and request quality
-    /// reports and production unit dashboards. Replace the placeholders with
-    /// your own API key, location ID and production ID to exercise the API.
-    /// </summary>
-    internal static class Program
+    public static async Task Main(string[] args)
     {
-        public static async Task Main(string[] args)
+        var builder = Host.CreateApplicationBuilder(args);
+
+        // Add appsettings.json (optional) and user secrets
+        builder.Configuration
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddUserSecrets<UserSecretsMarker>()  
+            .AddEnvironmentVariables();
+
+        builder.Services
+            .AddOptions<MaturixClientOptions>()
+            .Bind(builder.Configuration.GetSection("Maturix"));
+        builder.Services.AddMaturix(opts =>
+            builder.Configuration.GetSection("Maturix").Bind(opts));
+        builder.Services.AddHttpClient<MaturixClient>((sp, http) =>
         {
-            // Replace with your actual API key, location ID and production ID.
-            const string apiKey = "YOUR_API_KEY";
-            const string locationId = "LocationID";
-            const string productionId = "ProductionID";
+            var opts = sp.GetRequiredService<IOptions<MaturixClientOptions>>().Value;
+            http.BaseAddress = new Uri(opts.BaseUrl);
+        });
+        
+        builder.Services.AddTransient<IEndpointScenario, QualityReportsScenario>();
+        builder.Services.AddTransient<IEndpointScenario, ProductionUnitScenario>();
+        builder.Services.AddTransient<ScenarioRunner>();
 
-            // Create the options. You can change BaseUrl if Maturix provides a
-            // different endpoint or for testing.
-            var options = new MaturixClientOptions
-            {
-                ApiKey = apiKey,
-                // BaseUrl defaults to "https://app.maturix.com/api/api.php".
-            };
+        using var host = builder.Build();
 
-            // It is best practice to reuse HttpClient throughout the
-            // application. Here we instantiate it with the base address from
-            // options.
-            using var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(options.BaseUrl);
+        var runner = host.Services.GetRequiredService<ScenarioRunner>();
+        var mode = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "all";
+        var locationId = GetArgValue(args, "--locationId") ?? "LocationID";
+        var productionId = GetArgValue(args, "--productionId") ?? "86820";
 
-            // Use a null logger so the sample doesn't produce logging output.
-            var logger = NullLogger<MaturixClient>.Instance;
-            var client = new MaturixClient(httpClient, options, logger);
+        await runner.RunAsync(mode, new ScenarioInput(locationId, productionId));
+    }
 
-            Console.WriteLine("Fetching quality reports...");
-            var reportsResult = await client.GetQualityReportsAsync(locationId);
-            reportsResult.Switch(
-                reports =>
-                {
-                    Console.WriteLine($"Received {reports.Count} quality reports:\n");
-                    foreach (var report in reports)
-                    {
-                        Console.WriteLine($"Report {report.Id} – Production: {report.ProductionId} – Compound: {report.Compound}");
-                    }
-                },
-                error => Console.WriteLine($"Error fetching reports: {error}")
-            );
-
-            Console.WriteLine("\nFetching production dashboard...");
-            var dashboardResult = await client.GetProductionUnitDashboardAsync(productionId);
-            dashboardResult.Switch(
-                dashboard =>
-                {
-                    var stats = dashboard.Stats;
-                    Console.WriteLine(stats != null
-                        ? $"Production {stats.ProductionId}: Current strength {stats.CurrentStrength} at temperature {stats.CurrentTemp}°C"
-                        : "No stats available.");
-                    if (dashboard.SensorData != null)
-                    {
-                        Console.WriteLine($"Received {dashboard.SensorData.Count} sensor data points.");
-                    }
-                },
-                error => Console.WriteLine($"Error fetching dashboard: {error}")
-            );
+    private static string? GetArgValue(string[] args, string key)
+    {
+        foreach (var a in args)
+        {
+            if (a.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase))
+                return a[(key.Length + 1)..];
         }
+        return null;
     }
 }

@@ -1,3 +1,5 @@
+using Maturix.Clients;
+
 namespace Maturix
 {
     /// <summary>
@@ -13,12 +15,17 @@ namespace Maturix
         /// production Maturix endpoint. You can override this for testing or if
         /// Maturix provides a different base URL in the future.
         /// </summary>
-        public string BaseUrl { get; set; } = "https://app.maturix.com/api/api.php";
+        public string? BaseUrl { get; init; } = "https://app.maturix.com/api/api.php";
 
         /// <summary>
         /// Your API key. This is required for all API calls. If this value is
         /// null or empty, calls will fail with an <see cref="ApiError"/>.
         /// </summary>
-        public string ApiKey { get; set; } = string.Empty;
+        public string? ApiKey { get; init; }
+      
+        /// <summary>
+        /// Library-level fallback only. Typical flows rely on IDefaultMaturixLocationProvider.
+        /// </summary>
+        public string? DefaultLocationId { get; init; }
     }
 }
