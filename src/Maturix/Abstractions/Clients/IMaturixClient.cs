@@ -67,5 +67,16 @@ namespace Maturix.Abstractions.Clients
         /// a <see cref="SensorProductionData"/> or an <see cref="ApiError"/>.
         /// </returns>
         Task<OneOf<IReadOnlyList<SensorProductionData>, ApiError>> GetSensorProductionData(CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// Retrieves all compounds.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>
+        /// A task that resolves to a <see cref="OneOf{T0, T1}"/> containing either
+        /// a read‑only list of <see cref="Compound"/> objects or an
+        /// <see cref="ApiError"/> if the operation fails.
+        /// </returns>
+        Task<OneOf<IReadOnlyList<Compound>, ApiError>> GetCompoundsAsync(CancellationToken cancellationToken = default);
     }
 }

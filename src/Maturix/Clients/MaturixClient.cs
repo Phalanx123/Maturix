@@ -127,16 +127,30 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<SensorProductionData>, ApiError>> GetSensorProductionData(CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_boundLocationId))
-            throw  new MissingLocationException();
+ 
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
             return new ApiError(401, "API key is missing");
-
+        var loc = ResolveRequiredLocation();
         var result = await ApiHelper.GetAsync<SensorProductionEnvelope>(
-            _http, _logger, "CurrentProductionUnits", _options.ApiKey!,
+            _http, _logger, "CurrentProductionUnits", _options.ApiKey!, locationId: loc,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<SensorProductionData>, ApiError>>(
             ok => ok.ProductionData?.AsReadOnly() ?? new List<SensorProductionData>().AsReadOnly(),
+            err => err
+        );
+    }
+
+    /// <inheritdoc />
+    public async Task<OneOf<IReadOnlyList<Compound>, ApiError>> GetCompoundsAsync(CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+            return new ApiError(401, "API key is missing");
+        var loc = ResolveRequiredLocation();
+        var result = await ApiHelper.GetAsync<CompoundEnvelope>(
+            _http, _logger, "LocationCompounds", _options.ApiKey!, locationId: loc,
+            ct: ct);
+        return result.Match<OneOf<IReadOnlyList<Compound>, ApiError>>(
+            ok => ok.Compounds?.AsReadOnly() ?? new List<Compound>().AsReadOnly(),
             err => err
         );
     }

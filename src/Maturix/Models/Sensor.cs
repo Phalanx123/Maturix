@@ -95,7 +95,7 @@ public class Sensor
 /// <summary>
 /// Represents telemetry data captured by the device.
 /// </summary>
-public abstract class DeviceData
+public class DeviceData
 {
     /// <summary>
     /// Epoch timestamp when the data was recorded.
