@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Andre</Authors>
+    <Company>AFIG</Company>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/phalanx123/Maturix</RepositoryUrl>
+
+    <!-- Package defaults -->
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSource>true</IncludeSource>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+</Project>
