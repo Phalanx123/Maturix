@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <!-- Enable nullable reference types and implicit using directives. -->
@@ -9,10 +8,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latestmajor</LangVersion>
     <UserSecretsId>996d56c1-17a6-4d8a-9f85-57d12f5cbe2d</UserSecretsId>
-    <Version>1.2</Version>
+    <Version>1.6.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-
   <ItemGroup>
     <!-- OneOf is used to model success/error results in a single return type. -->
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
@@ -21,5 +19,4 @@
     <!-- Logging abstractions provide ILogger<T> without bringing in a full logging implementation. -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.8" />
   </ItemGroup>
-
 </Project>
