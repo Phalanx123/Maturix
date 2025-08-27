@@ -5,7 +5,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latestmajor</LangVersion>
     <UserSecretsId>996d56c1-17a6-4d8a-9f85-57d12f5cbe2d</UserSecretsId>
-    <Version>1.7.0</Version>
+    <Version>1.8.0</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <TargetFramework>net9.0</TargetFramework>
     <IsPackable>true</IsPackable>
