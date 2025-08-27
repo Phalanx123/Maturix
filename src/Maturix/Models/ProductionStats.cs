@@ -44,15 +44,15 @@ public sealed class ProductionStats
 
     /// <summary>Overall equivalent age maturity flag/value (API returns an int).</summary>
     [JsonPropertyName("EquivilantAgeMaturityOverall")]
-    public double EquivilantAgeMaturityOverall { get; set; }
+    public double EquivalentAgeMaturityOverall { get; set; }
 
     /// <summary>Current equivalent age maturity flag/value (API returns an int).</summary>
     [JsonPropertyName("EquivilantAgeMaturityNow")]
-    public double EquivilantAgeMaturityNow { get; set; }
+    public double EquivalentAgeMaturityNow { get; set; }
 
     /// <summary>Equivalent age maturity seconds (accumulated). Use long for headroom.</summary>
     [JsonPropertyName("EquivilantAgeMaturitySeconds")]
-    public long EquivilantAgeMaturitySeconds { get; set; }
+    public long EquivalentAgeMaturitySeconds { get; set; }
 
     /// <summary>Nurse–Saul maturity (hours).</summary>
     [JsonPropertyName("NurseSauMaturityHour")]
