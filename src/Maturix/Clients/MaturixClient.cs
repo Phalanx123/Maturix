@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using Maturix.Abstractions.Clients;
 using Maturix.Abstractions.Location;
 using Maturix.Exceptions;
@@ -87,7 +82,7 @@ public class MaturixClient : IMaturixClient
             ct: ct);
 
         return result.Match<OneOf<IReadOnlyList<QualityReport>, ApiError>>(
-            ok => ok.QualityReports?.AsReadOnly() ?? [],
+            ok => ok.QualityReports?.AsReadOnly() ?? new List<QualityReport>().AsReadOnly(),
             err => err
         );
     }
@@ -124,7 +119,7 @@ public class MaturixClient : IMaturixClient
             ct: ct);
 
         return result.Match<OneOf<IReadOnlyList<Sensor>, ApiError>>(
-            ok => ok.Sensors?.AsReadOnly() ?? [],
+            ok => ok.Sensors?.AsReadOnly() ?? new List<Sensor>().AsReadOnly(),
             err => err
         );
     }
@@ -141,7 +136,7 @@ public class MaturixClient : IMaturixClient
             _http, _logger, "CurrentProductionUnits", _options.ApiKey!,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<SensorProductionData>, ApiError>>(
-            ok => ok.ProductionData?.AsReadOnly() ?? [],
+            ok => ok.ProductionData?.AsReadOnly() ?? new List<SensorProductionData>().AsReadOnly(),
             err => err
         );
     }
