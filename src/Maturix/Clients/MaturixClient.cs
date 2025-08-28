@@ -1,8 +1,7 @@
 using Maturix.Abstractions.Clients;
-using Maturix.Abstractions.Location;
-using Maturix.Exceptions;
 using Maturix.Helpers;
 using Maturix.Models;
+using Maturix.Models.Requests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneOf;
@@ -15,8 +14,7 @@ public class MaturixClient : IMaturixClient
     private readonly HttpClient _http;
     private readonly ILogger<MaturixClient> _logger;
     private readonly MaturixClientOptions _options;
-    private readonly IDefaultMaturixLocationProvider _defaultLocation;
-    private string? _boundLocationId;
+
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MaturixClient"/> class.
@@ -24,13 +22,12 @@ public class MaturixClient : IMaturixClient
     /// <param name="http"></param>
     /// <param name="options"></param>
     /// <param name="logger"></param>
-    /// <param name="defaultLocation"></param>
     /// <exception cref="ArgumentException"></exception>
-    public MaturixClient(HttpClient http, IOptions<MaturixClientOptions> options, ILogger<MaturixClient> logger, IDefaultMaturixLocationProvider defaultLocation)
+    public MaturixClient(HttpClient http, IOptions<MaturixClientOptions> options, ILogger<MaturixClient> logger)
     {
         _http = http;
         _logger = logger;
-        _defaultLocation = defaultLocation;
+    
         _options = options.Value;
 
         if (string.IsNullOrWhiteSpace(_options.BaseUrl))
@@ -40,17 +37,7 @@ public class MaturixClient : IMaturixClient
             _http.BaseAddress = new Uri(_options.BaseUrl);
     }
     
-    private string ResolveRequiredLocation()
-    {
-        var effective = _boundLocationId
-                        ?? _defaultLocation.GetDefaultLocationId()
-                        ?? _options.DefaultLocationId;
-
-        if (string.IsNullOrWhiteSpace(effective))
-            throw new MissingLocationException(); // custom exception
-
-        return effective;
-    }
+  
 
     /// <inheritdoc />
     public IMaturixClient ForLocation(string locationId)
@@ -58,10 +45,14 @@ public class MaturixClient : IMaturixClient
         if (string.IsNullOrWhiteSpace(locationId))
             throw new ArgumentException("LocationId is required", nameof(locationId));
 
-        var clone = new MaturixClient(_http, Options.Create(_options), _logger, _defaultLocation)
+        var newOptions = new MaturixClientOptions
         {
-            _boundLocationId = locationId
+            ApiKey = _options.ApiKey,
+            BaseUrl = _options.BaseUrl,
+            LocationId = locationId
         };
+
+        var clone = new MaturixClient(_http, Options.Create(newOptions), _logger);
         return clone;
     }
     
@@ -69,16 +60,12 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<QualityReport>, ApiError>> GetQualityReportsAsync(CancellationToken ct = default)
     {
-       
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return new ApiError(401, "API key is missing");
-        var loc = ResolveRequiredLocation();
+  
         var result = await ApiHelper.GetAsync<QualityReportEnvelope>(
             _http,
             _logger,
             function: "QualityReports",
-            apiKey: _options.ApiKey!,
-            locationId: loc,
+            options: _options,
             ct: ct);
 
         return result.Match<OneOf<IReadOnlyList<QualityReport>, ApiError>>(
@@ -90,15 +77,11 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<ProductionUnit, ApiError>> GetProductionUnitAsync(string productionId, CancellationToken ct = default)
     {  
-     
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return new ApiError(401, "API key is missing");
         if (string.IsNullOrWhiteSpace(productionId))
             throw new ArgumentException("Production ID is required", nameof(productionId));
-        var loc = ResolveRequiredLocation();
+
         var result = await ApiHelper.GetAsync<ProductionUnit>(
-            _http, _logger, "ProductionUnitDashboard", _options.ApiKey!,
-            locationId: loc,
+            _http, _logger, "ProductionUnitDashboard", _options,
             extraParams: [new KeyValuePair<string, string>("ProductionID", productionId)],
             ct: ct);
         return result.Match<OneOf<ProductionUnit, ApiError>>(
@@ -110,12 +93,10 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<Sensor>, ApiError>> GetSensorsAsync(CancellationToken ct = default)
     {
-   
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return new ApiError(401, "API key is missing");
-        var loc = ResolveRequiredLocation();
+        
+
         var result = await ApiHelper.GetAsync<SensorsEnvelope>(
-            _http, _logger, "LocationSensors", _options.ApiKey!,   locationId: loc,
+            _http, _logger, "LocationSensors", _options,
             ct: ct);
 
         return result.Match<OneOf<IReadOnlyList<Sensor>, ApiError>>(
@@ -127,12 +108,9 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<SensorProductionData>, ApiError>> GetSensorProductionData(CancellationToken ct = default)
     {
- 
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return new ApiError(401, "API key is missing");
-        var loc = ResolveRequiredLocation();
+     
         var result = await ApiHelper.GetAsync<SensorProductionEnvelope>(
-            _http, _logger, "CurrentProductionUnits", _options.ApiKey!, locationId: loc,
+            _http, _logger, "CurrentProductionUnits", _options,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<SensorProductionData>, ApiError>>(
             ok => ok.ProductionData?.AsReadOnly() ?? new List<SensorProductionData>().AsReadOnly(),
@@ -143,15 +121,24 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<Compound>, ApiError>> GetCompoundsAsync(CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            return new ApiError(401, "API key is missing");
-        var loc = ResolveRequiredLocation();
         var result = await ApiHelper.GetAsync<CompoundEnvelope>(
-            _http, _logger, "LocationCompounds", _options.ApiKey!, locationId: loc,
+            _http, _logger, "LocationCompounds", _options,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<Compound>, ApiError>>(
             ok => ok.Compounds?.AsReadOnly() ?? new List<Compound>().AsReadOnly(),
             err => err
         );
+    }
+
+    /// <inheritdoc />
+    public async Task<OneOf<bool, ApiError>> NewProductionPlan(NewProductionPlanEntryRequest planEntryRequest, CancellationToken ct = default)
+    {
+        var result = await ApiHelper.GetAsync<SuccessEnvelope>(
+            _http, _logger, "NewProductionPlanEntry", _options,
+            extraParams: planEntryRequest.ToQueryParams() ,
+            ct: ct);
+        return result.Match<OneOf<bool, ApiError>>(
+            _ => result.AsT0.Success == 1,
+            err => err);
     }
 }

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Maturix.Clients;
 using Maturix.Models;
+using Maturix.Models.Requests;
 using OneOf;
 
 namespace Maturix.Abstractions.Clients
@@ -78,5 +79,13 @@ namespace Maturix.Abstractions.Clients
         /// <see cref="ApiError"/> if the operation fails.
         /// </returns>
         Task<OneOf<IReadOnlyList<Compound>, ApiError>> GetCompoundsAsync(CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// Creates a new production plan.
+        /// </summary>
+        /// <param name="planEntryRequest"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<OneOf<bool, ApiError>> NewProductionPlan(NewProductionPlanEntryRequest planEntryRequest, CancellationToken cancellationToken = default);
     }
 }

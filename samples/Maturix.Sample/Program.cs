@@ -37,6 +37,7 @@ internal static class Program
         builder.Services.AddTransient<IEndpointScenario, QualityReportsScenario>();
         builder.Services.AddTransient<IEndpointScenario, ProductionUnitScenario>();
         builder.Services.AddTransient<IEndpointScenario, CompoundsScenario>();
+        builder.Services.AddTransient<IEndpointScenario, NewProductionPlanScenario>();
         builder.Services.AddTransient<ScenarioRunner>();
 
         using var host = builder.Build();

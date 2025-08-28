@@ -1,27 +1,66 @@
-using System.Collections.Generic;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Maturix.Models
+namespace Maturix.Models;
+
+/// <summary>
+/// Updated RequestResponse class using JsonElement (simpler approach)
+/// </summary>
+internal class RequestResponse<T>
 {
+    [JsonPropertyName("status")]
+    public int Status { get; set; }
+
+    [JsonPropertyName("statusmsg")]
+    public string? StatusMessage { get; set; }
+
+    [JsonPropertyName("data")]
+    public JsonElement? Data { get; set; }
+
     /// <summary>
-    /// Represents the top‑level response for the QualityReports endpoint.  
-    /// The API wraps the actual list of reports inside a <c>data</c> object.
+    /// Gets the typed data if it can be deserialized as T, otherwise returns null
     /// </summary>
-    internal class RequestResponse<T>
+    public T? GetTypedData(JsonSerializerOptions options)
     {
-        [JsonPropertyName("status")]
-        public int Status { get; set; }
+        if (Data == null || Data.Value.ValueKind == JsonValueKind.Null)
+            return default;
 
-        [JsonPropertyName("statusmsg")]
-        public string? StatusMessage { get; set; }
+        try
+        {
+            // Try to deserialize as T (handles objects and arrays)
+            if (Data.Value.ValueKind == JsonValueKind.Object || Data.Value.ValueKind == JsonValueKind.Array)
+            {
+                return Data.Value.Deserialize<T>(options);
+            }
+        }
+        catch (JsonException)
+        {
+            // Ignore deserialization errors
+        }
 
-        [JsonPropertyName("data")]
-        public T? Data { get; set; }
+        return default(T);
     }
 
-    internal class QualityReportsData
+    /// <summary>
+    /// Gets error message from Data if it's a string, otherwise returns null
+    /// </summary>
+    public string? GetErrorMessage()
     {
-        [JsonPropertyName("QualityReports")]
-        public List<QualityReport>? QualityReports { get; set; }
+        if (Data == null || Data.Value.ValueKind != JsonValueKind.String)
+            return null;
+
+        return Data.Value.GetString();
+    }
+
+    /// <summary>
+    /// Checks if the data is a SuccessEnvelope and returns the Success value
+    /// </summary>
+    public int? GetSuccessCode(JsonSerializerOptions options)
+    {
+        var typedData = GetTypedData(options);
+        if (typedData is SuccessEnvelope envelope)
+            return envelope.Success;
+        
+        return null;
     }
 }

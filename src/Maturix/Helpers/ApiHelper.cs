@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Maturix.Models;
 using Microsoft.Extensions.Logging;
 using OneOf;
@@ -15,7 +10,7 @@ namespace Maturix.Helpers;
 /// HTTP helpers for Maturix API requests.
 /// Centralises URL signing (API key + optional LocationID) and envelope parsing.
 /// </summary>
-internal static class ApiHelper
+public static class ApiHelper
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -32,7 +27,7 @@ internal static class ApiHelper
     /// <param name="apiKey">API key (required).</param>
     /// <param name="locationId">Optional physical LocationID.</param>
     /// <param name="extraParams">Optional extra query parameters.</param>
-    internal static string BuildSignedUrl(
+    public static string BuildSignedUrl(
         string function,
         string apiKey,
         string? locationId = null,
@@ -67,15 +62,17 @@ internal static class ApiHelper
         HttpClient http,
         ILogger logger,
         string function,
-        string apiKey,
-        string? locationId = null,
+        MaturixClientOptions options,
         IEnumerable<KeyValuePair<string, string>>? extraParams = null,
         CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(http);
         ArgumentNullException.ThrowIfNull(logger);
-
-        var url = BuildSignedUrl(function, apiKey, locationId, extraParams);
+        if (string.IsNullOrWhiteSpace(options.ApiKey))
+            return new ApiError(401, "API key is missing");
+        if (string.IsNullOrWhiteSpace(options.LocationId))
+            return new ApiError(401, "LocationID is missing");
+        var url = BuildSignedUrl(function, options.ApiKey, options.LocationId, extraParams);
 
         try
         {
@@ -92,12 +89,20 @@ internal static class ApiHelper
 
             if (envelope is null)
                 return new ApiError(-1, "Empty response");
-            if (envelope.Status != 200)
-                return new ApiError(envelope.Status, envelope.StatusMessage ?? "Unknown error");
-            if (envelope.Data is null)
-                return new ApiError(-1, "Missing data");
 
-            return envelope.Data;
+            if (envelope.Status != 200)
+            {
+                // Try to extract error message from Data
+                var errorMessage = envelope.GetErrorMessage() ?? envelope.StatusMessage ?? "Unknown error";
+                return new ApiError(envelope.Status, errorMessage);
+            }
+
+            // Try to get the typed data
+            var typedData = envelope.GetTypedData(JsonOptions);
+            if (typedData != null)
+                return typedData;
+
+            return new ApiError(-1, "Missing or malformed data");
         }
         catch (OperationCanceledException)
         {
@@ -110,4 +115,5 @@ internal static class ApiHelper
             return new ApiError(-1, ex.Message);
         }
     }
+  
 }

@@ -19,7 +19,7 @@ namespace Maturix.Models;
         /// Typically describes mix ratio or testing condition.
         /// </summary>
         [JsonPropertyName("Name")]
-        public string? Name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Defines the type of maturity function used (e.g., Nurse-Saul = 1).

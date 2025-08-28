@@ -26,6 +26,6 @@ namespace Maturix
         /// <summary>
         /// Library-level fallback only. Typical flows rely on IDefaultMaturixLocationProvider.
         /// </summary>
-        public string? DefaultLocationId { get; set; }
+        public string? LocationId { get; set; }
     }
 }
