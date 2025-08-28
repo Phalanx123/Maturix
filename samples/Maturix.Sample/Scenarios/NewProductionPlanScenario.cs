@@ -31,7 +31,6 @@ internal sealed class NewProductionPlanScenario : IEndpointScenario
             AutoStop = true,
             CompoundId = 3105,
             Label = ProductionPlanLabelEnum.Blue,
-            LocationId = 46,
             ProductionId = "ScenarioTest",
             ProductionUnix = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds(),
             WorkstationId = 2468,

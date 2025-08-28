@@ -22,12 +22,6 @@ public sealed class NewProductionPlanEntryRequest : IQueryParamSerializable
     public required int WorkstationId { get; init; }
 
     /// <summary>
-    /// Location ID - Numeric ID of the location (plant/warehouse) where production will occur
-    /// </summary>
-    [JsonPropertyName("LocationID")]
-    public required int LocationId { get; init; }
-
-    /// <summary>
     /// Compound ID
     /// </summary>
 
@@ -72,7 +66,6 @@ public sealed class NewProductionPlanEntryRequest : IQueryParamSerializable
         yield return new KeyValuePair<string, string>("ProductionID", ProductionId);
         yield return new KeyValuePair<string, string>("WorkstationID",
             WorkstationId.ToString(CultureInfo.InvariantCulture));
-        yield return new KeyValuePair<string, string>("LocationID", LocationId.ToString(CultureInfo.InvariantCulture));
         yield return new KeyValuePair<string, string>("CompoundID", CompoundId.ToString(CultureInfo.InvariantCulture));
         yield return new KeyValuePair<string, string>("Strength", Strength.ToString(CultureInfo.InvariantCulture));
         yield return new KeyValuePair<string, string>("AutoStop", AutoStop ? "1" : "0");
