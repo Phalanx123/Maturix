@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Maturix.Clients;
 using Maturix.Models;
+using Maturix.Models.ProductionPlan;
 using Maturix.Models.Requests;
 using OneOf;
 
@@ -87,5 +88,12 @@ namespace Maturix.Abstractions.Clients
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         Task<OneOf<bool, ApiError>> NewProductionPlan(NewProductionPlanEntryRequest planEntryRequest, CancellationToken cancellationToken = default);
+        
+        /// <summary>
+        /// Gets all production plans for the current location.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<OneOf.OneOf<IReadOnlyList<ProductionPlanResponse>, ApiError>> GetProductionPlans(CancellationToken cancellationToken = default);
     }
 }

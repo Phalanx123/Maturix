@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Maturix.Helpers;
 using Maturix.Models;
+using Maturix.Models.Envelopes;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;

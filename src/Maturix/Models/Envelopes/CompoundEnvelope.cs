@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Maturix.Models;
+namespace Maturix.Models.Envelopes;
 
 /// <summary>
 /// Represents an envelope for Compound Quality Reports returned by the Maturix API.

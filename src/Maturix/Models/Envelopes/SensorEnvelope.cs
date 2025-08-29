@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace Maturix.Models;
+namespace Maturix.Models.Envelopes;
 
 internal sealed class SensorsEnvelope
 {

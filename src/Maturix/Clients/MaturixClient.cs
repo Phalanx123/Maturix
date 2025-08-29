@@ -1,6 +1,8 @@
 using Maturix.Abstractions.Clients;
 using Maturix.Helpers;
 using Maturix.Models;
+using Maturix.Models.Envelopes;
+using Maturix.Models.ProductionPlan;
 using Maturix.Models.Requests;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -36,8 +38,6 @@ public class MaturixClient : IMaturixClient
         if (_http.BaseAddress == null)
             _http.BaseAddress = new Uri(_options.BaseUrl);
     }
-    
-  
 
     /// <inheritdoc />
     public IMaturixClient ForLocation(string locationId)
@@ -56,15 +56,13 @@ public class MaturixClient : IMaturixClient
         return clone;
     }
     
-    
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<QualityReport>, ApiError>> GetQualityReportsAsync(CancellationToken ct = default)
     {
-  
         var result = await ApiHelper.GetAsync<QualityReportEnvelope>(
             _http,
             _logger,
-            function: "QualityReports",
+            function: MaturixFunctions.QualityReports,
             options: _options,
             ct: ct);
 
@@ -81,7 +79,7 @@ public class MaturixClient : IMaturixClient
             throw new ArgumentException("Production ID is required", nameof(productionId));
 
         var result = await ApiHelper.GetAsync<ProductionUnit>(
-            _http, _logger, "ProductionUnitDashboard", _options,
+            _http, _logger, MaturixFunctions.ProductionUnitDashboard, _options,
             extraParams: [new KeyValuePair<string, string>("ProductionID", productionId)],
             ct: ct);
         return result.Match<OneOf<ProductionUnit, ApiError>>(
@@ -93,10 +91,8 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<Sensor>, ApiError>> GetSensorsAsync(CancellationToken ct = default)
     {
-        
-
         var result = await ApiHelper.GetAsync<SensorsEnvelope>(
-            _http, _logger, "LocationSensors", _options,
+            _http, _logger, MaturixFunctions.LocationSensors, _options,
             ct: ct);
 
         return result.Match<OneOf<IReadOnlyList<Sensor>, ApiError>>(
@@ -108,9 +104,8 @@ public class MaturixClient : IMaturixClient
     /// <inheritdoc />
     public async Task<OneOf<IReadOnlyList<SensorProductionData>, ApiError>> GetSensorProductionData(CancellationToken ct = default)
     {
-     
         var result = await ApiHelper.GetAsync<SensorProductionEnvelope>(
-            _http, _logger, "CurrentProductionUnits", _options,
+            _http, _logger, MaturixFunctions.CurrentProductionUnits, _options,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<SensorProductionData>, ApiError>>(
             ok => ok.ProductionData?.AsReadOnly() ?? new List<SensorProductionData>().AsReadOnly(),
@@ -122,7 +117,7 @@ public class MaturixClient : IMaturixClient
     public async Task<OneOf<IReadOnlyList<Compound>, ApiError>> GetCompoundsAsync(CancellationToken ct = default)
     {
         var result = await ApiHelper.GetAsync<CompoundEnvelope>(
-            _http, _logger, "LocationCompounds", _options,
+            _http, _logger, MaturixFunctions.LocationCompounds, _options,
             ct: ct);
         return result.Match<OneOf<IReadOnlyList<Compound>, ApiError>>(
             ok => ok.Compounds?.AsReadOnly() ?? new List<Compound>().AsReadOnly(),
@@ -134,11 +129,23 @@ public class MaturixClient : IMaturixClient
     public async Task<OneOf<bool, ApiError>> NewProductionPlan(NewProductionPlanEntryRequest planEntryRequest, CancellationToken ct = default)
     {
         var result = await ApiHelper.GetAsync<SuccessEnvelope>(
-            _http, _logger, "NewProductionPlanEntry", _options,
+            _http, _logger, MaturixFunctions.NewProductionPlanEntry, _options,
             extraParams: planEntryRequest.ToQueryParams() ,
             ct: ct);
         return result.Match<OneOf<bool, ApiError>>(
             _ => result.AsT0.Success == 1,
             err => err);
+    }
+
+    /// <inheritdoc />
+    public async Task<OneOf<IReadOnlyList<ProductionPlanResponse>, ApiError>> GetProductionPlans(CancellationToken ct = default)
+    {
+        var result = await ApiHelper.GetAsync<ProductionPlanEnvelope>(
+            _http, _logger, MaturixFunctions.LocationProductionPlan, _options,
+            ct: ct);
+        return result.Match<OneOf<IReadOnlyList<ProductionPlanResponse>, ApiError>>(
+            ok => ok.ProductionPlans?.AsReadOnly() ?? new List<ProductionPlanResponse>().AsReadOnly(),
+            err => err
+        );
     }
 }
